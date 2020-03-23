@@ -4,10 +4,10 @@
 
 #define DEFAULT_PORT 0.0
 
-const char* DEFAULT_DICTIONARY = "words.txt";
+const char* DEFAULT_DICTIONARY = "dictionary.txt";
 
 char** make_dictionary(char*);
-char** resize_dictionary(char**, int*);
+void resize_dictionary(char***, int*);
 void free_dictionary(char**);
 
 int main(int argc, char** argv){
@@ -90,7 +90,7 @@ char** make_dictionary(char* dictionary_filename){
 		printf("%s\n", read_word);
 
 		if(i == dictionary_size - 2){
-			dictionary = resize_dictionary(dictionary, &dictionary_size);
+			resize_dictionary(&dictionary, &dictionary_size);
 		}
 
 		dictionary[i] = malloc(strlen(read_word) + 1 * sizeof(char));
@@ -107,19 +107,17 @@ char** make_dictionary(char* dictionary_filename){
 	return dictionary;
 }
 
-char** resize_dictionary(char** dictionary, int* dictionary_size){
+void resize_dictionary(char*** dictionary, int* dictionary_size){
 
 	*dictionary_size = *dictionary_size * 2;
 
-	char** new_dictionary = realloc(dictionary, *dictionary_size * sizeof(char*));
+	char** new_dictionary = realloc(*dictionary, *dictionary_size * sizeof(char*));
 
 	if(new_dictionary == NULL){
 		printf("Reallocating dictionary failed.\n");
 		exit(1);
 	}
-	else dictionary = new_dictionary;
-
-	return dictionary;
+	else *dictionary = new_dictionary;
 }
 
 void free_dictionary(char** dictionary){
