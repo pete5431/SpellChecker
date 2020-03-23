@@ -8,7 +8,7 @@ const char* DEFAULT_DICTIONARY = "dictionary.txt";
 
 char** make_dictionary(char*);
 void resize_dictionary(char***, int*);
-void free_dictionary(char**);
+void free_dictionary(char***);
 
 int main(int argc, char** argv){
 
@@ -63,7 +63,7 @@ int main(int argc, char** argv){
 
 	free(dictionary_filename);
 
-	free_dictionary(dictionary);
+	free_dictionary(&dictionary);
 
 	return 0;
 }
@@ -87,7 +87,7 @@ char** make_dictionary(char* dictionary_filename){
 
 	while(getline(&read_word, &size, fp) != -1){
 
-		printf("%s\n", read_word);
+		// printf("%s\n", read_word);
 
 		if(i == dictionary_size - 2){
 			resize_dictionary(&dictionary, &dictionary_size);
@@ -120,13 +120,13 @@ void resize_dictionary(char*** dictionary, int* dictionary_size){
 	else *dictionary = new_dictionary;
 }
 
-void free_dictionary(char** dictionary){
+void free_dictionary(char*** dictionary){
 
 	int i = 0;
 
-	while(dictionary[i] != NULL){
-		free(dictionary[i]);
+	while((*dictionary)[i] != NULL){
+		free((*dictionary)[i]);
 		i++;
 	}
-	free(dictionary);
+	free(*dictionary);	
 }
