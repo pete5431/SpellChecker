@@ -1,5 +1,5 @@
-#ifndef FIXED_QUEUE_H
-#define FIXED_QUEUE_H
+#ifndef FIXED_QUEUE_H_
+#define FIXED_QUEUE_H_
 
 typedef struct{
 
@@ -7,12 +7,15 @@ typedef struct{
 	int front;
 	int end;
 	int current_size;
-	void* array;
+	void** array;
+
 } Queue;
 
-int is_empty(Queue*);
-int is_full(Queue*);
-void enqueue(Queue*, void*);
-void* dequeue(Queue*);
+Queue* create_queue(int);
+//int is_empty(Queue*);
+//int is_full(Queue*);
+//void enqueue(Queue*, void*);
+//void* dequeue(Queue*);
+//void free_queue(Queue*);
 
 #endif

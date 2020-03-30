@@ -6,6 +6,8 @@
 #include "fixed_queue.h"
 
 #define DEFAULT_PORT 2222
+#define CAPACITY 10
+#define NUM_WORKERS 5
 
 const char* DEFAULT_DICTIONARY = "dictionary.txt";
 
@@ -54,6 +56,10 @@ int main(int argc, char** argv){
 
 		port_number = DEFAULT_PORT;
 	}
+
+	pthread_t workers[NUM_WORKERS];
+
+	Queue* sockets = create_queue(CAPACITY);
 
 	printf("Dictionary filename: %s\n", dictionary_filename);
 	printf("Port Number: %d\n", port_number);

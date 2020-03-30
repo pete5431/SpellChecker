@@ -2,17 +2,6 @@
 #include <stdlib.h>
 #include "fixed_queue.h"
 
-typedef struct{
-
-	int max_size;
-
-	int front, end;
-
-	int current_size;
-
-	void** array;
-} Queue;
-
 Queue* create_queue(int size){
 
 	Queue* queue = (Queue*) malloc(sizeof(Queue));
@@ -54,34 +43,9 @@ void* dequeue(Queue* queue){
 	return item;	
 }
 
-void print_queue(Queue* queue){
-
-	for(int i = 0; i < queue->current_size; i++){
-
-		printf("%d\n", *((int*) queue->array[i]));
-
-	}
-}
-
 void free_queue(Queue* queue){
 	
 	free(queue->array);
 	free(queue);
 }
 
-int main(){
-
-	Queue* queue = create_queue(5);
-
-	int a = 10;
-
-	void* add  = &a;
-
-	enqueue(queue, add);
-
-	print_queue(queue);
-
-	free_queue(queue);
-
-	return 0;
-}
