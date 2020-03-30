@@ -1,14 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
+#include "dictionary.h"
+#include "fixed_queue.h"
 
-#define DEFAULT_PORT 0.0
+#define DEFAULT_PORT 2222
 
 const char* DEFAULT_DICTIONARY = "dictionary.txt";
-
-char** make_dictionary(char*);
-void resize_dictionary(char***, int*);
-void free_dictionary(char***);
 
 int main(int argc, char** argv){
 
@@ -24,7 +23,7 @@ int main(int argc, char** argv){
 
 		// If both dictionary file and port number is provided.
 
-		dictionary_filename = malloc(strlen(argv[1]) + 1 * sizeof(char));
+		dictionary_filename = (char*)calloc(strlen(argv[1]) + 1, sizeof(char));
 
 		if(dictionary_filename == NULL){
 			printf("Memory Allocation Error.\n");
@@ -39,7 +38,7 @@ int main(int argc, char** argv){
 
 		// If only dictionary file is provided.
 
-		dictionary_filename = malloc(strlen(argv[1]) + 1 * sizeof(char));
+		dictionary_filename = (char*) calloc(strlen(argv[1]) + 1, sizeof(char));
 
                 strncpy(dictionary_filename, argv[1], strlen(argv[1]) + 1);
 
@@ -49,7 +48,7 @@ int main(int argc, char** argv){
 
 		// If none are provided, use default.
 
-		dictionary_filename = malloc(strlen(DEFAULT_DICTIONARY) + 1 * sizeof(char));
+		dictionary_filename = (char*) calloc(strlen(DEFAULT_DICTIONARY) + 1, sizeof(char));
 
 		strncpy(dictionary_filename, DEFAULT_DICTIONARY, strlen(DEFAULT_DICTIONARY) + 1 * sizeof(char));
 
@@ -61,6 +60,8 @@ int main(int argc, char** argv){
 
 	dictionary = make_dictionary(dictionary_filename);
 
+	int i = 0;
+
 	free(dictionary_filename);
 
 	free_dictionary(&dictionary);
@@ -68,65 +69,3 @@ int main(int argc, char** argv){
 	return 0;
 }
 
-char** make_dictionary(char* dictionary_filename){
-
-	int dictionary_size = 100;
-
-	char** dictionary = (char**)calloc(dictionary_size, sizeof(char*));
-
-	FILE* fp = fopen(dictionary_filename, "r");
-
-	if(fp == NULL){
-		printf("File open failed for dictionary.\n");
-		exit(1);
-	}
-	
-	size_t size = 0;
-	char* read_word = NULL;
-	int i = 0;
-
-	while(getline(&read_word, &size, fp) != -1){
-
-		// printf("%s\n", read_word);
-
-		if(i == dictionary_size - 2){
-			resize_dictionary(&dictionary, &dictionary_size);
-		}
-
-		dictionary[i] = malloc(strlen(read_word) + 1 * sizeof(char));
-
-		strncpy(dictionary[i], read_word, strlen(read_word) + 1);
-
-		i++;
-	}
-
-	dictionary[i + 1] = NULL;
-
-	free(read_word);
-
-	return dictionary;
-}
-
-void resize_dictionary(char*** dictionary, int* dictionary_size){
-
-	*dictionary_size = *dictionary_size * 2;
-
-	char** new_dictionary = realloc(*dictionary, *dictionary_size * sizeof(char*));
-
-	if(new_dictionary == NULL){
-		printf("Reallocating dictionary failed.\n");
-		exit(1);
-	}
-	else *dictionary = new_dictionary;
-}
-
-void free_dictionary(char*** dictionary){
-
-	int i = 0;
-
-	while((*dictionary)[i] != NULL){
-		free((*dictionary)[i]);
-		i++;
-	}
-	free(*dictionary);	
-}
