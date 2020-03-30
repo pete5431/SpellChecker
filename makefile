@@ -3,7 +3,7 @@ CC = gcc
 CFLAGS = rm -rf *o spellCheckerServer
 
 all:
-	gcc -o spellCheckerServer server_main.c
+	gcc -o spellCheckerServer server_main.c dictionary.c
 
 clean:
 	$(CLEANUP)
