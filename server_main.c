@@ -2,14 +2,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <sys/wait.h>
 #include "dictionary.h"
-#include "fixed_queue.h"
+#include "bundle.h"
+#include "worker.h"
 
 #define DEFAULT_PORT 2222
 #define CAPACITY 10
-#define NUM_WORKERS 5
+#define NUM_WORKERS 2
+
+#define MAX_LIN 64
 
 const char* DEFAULT_DICTIONARY = "dictionary.txt";
+
+Bundle* bundle;
 
 int main(int argc, char** argv){
 
@@ -59,14 +69,24 @@ int main(int argc, char** argv){
 
 	pthread_t workers[NUM_WORKERS];
 
-	Queue* sockets = create_queue(CAPACITY);
+	SocketQueue* sockets = create_queue_socket(CAPACITY);
+	LogQueue* logs = create_queue_log(CAPACITY);
+	dictionary = make_dictionary(dictionary_filename);
+
+	bundle = create_bundle(sockets, logs, dictionary);
+
+	enqueue_socket(bundle->client_buffer, 10);
+
+	for(int i = 0; i < NUM_WORKERS; i++){
+		pthread_create(&(workers[i]), NULL, &process_sockets, NULL);
+	}
+
+	for(int i = 0; i < NUM_WORKERS; i++){
+		pthread_join(workers[i], NULL);
+	}
 
 	printf("Dictionary filename: %s\n", dictionary_filename);
 	printf("Port Number: %d\n", port_number);
-
-	dictionary = make_dictionary(dictionary_filename);
-
-	int i = 0;
 
 	free(dictionary_filename);
 
