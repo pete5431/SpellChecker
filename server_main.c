@@ -89,12 +89,10 @@ int main(int argc, char** argv){
 		pthread_join(workers[i], NULL);
 	}
 
-	//start_server(port_number);
+	start_server(port_number);
 
 	free(dictionary_filename);
-
 	free_dictionary(&dictionary);
-
 	free_queue_socket(sockets);
 	free_queue_log(logs);
 	free_bundle(bundle);
@@ -143,10 +141,19 @@ void start_server(char* port_number){
 			printf("Connection accepted from %s:%s\n", client_name, client_port);
 		}
 
-		// Add the connected socket to the queue.
-		enqueue_socket(bundle->client_buffer, connected_fd);
+		pthread_mutex_lock(&(bundle->client_lock));
 
-		printf("connection closed\n");
+		if(is_full_socket(bundle->client_buffer)){
+			pthread_cond_wait(&(bundle->client_full), &(bundle->client_lock));
+			enqueue_socket(bundle->client_buffer, connected_fd);
+			pthread_cond_signal(&(bundle->client_empty));
+		}else
+		// Add the connected socket to the queue.
+		enqueue_socket(bundle->client_buffer, connected_fd);		
+
+		pthread_mutex_unlock(&(bundle->client_lock));
+
+		printf("connection closed.\n");
 		close(connected_fd);
 	}	
 }
@@ -162,25 +169,34 @@ int get_listen_fd(char* port_number){
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_family = AF_INET;
 
+	// Gets linked list of possible addresses.
 	if((status == getaddrinfo(NULL, port_number, &hints, &res)) != 0){
+		printf("getaddrinfo error.\n");
 		exit(1);
 	}
 	
+	// Look for a valid address.
 	for(p = res; p != NULL; p = p->ai_next){
 		if((listen_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) < 0){
 			continue;
 		}
+		// Bind socket to that valid address.
 		if(bind(listen_fd, p->ai_addr, p->ai_addrlen) == 0){
 			break;
 		}
 	}
 	
+	// Free the linked list.
 	freeaddrinfo(res);
 
 	if(p == NULL){
+		printf("bind error.\n");
 		exit(1);
 	}
+
+	// Set the listening socket for listening.
 	if(listen(listen_fd, BACKLOG) < 0){
+		printf("listen error.\n");
 		close(listen_fd);
 		exit(1);
 	}

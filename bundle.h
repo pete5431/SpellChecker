@@ -48,6 +48,8 @@ typedef struct{
 	char** dictionary;
 	pthread_mutex_t client_lock;
 	pthread_mutex_t log_lock;
+	pthread_cond_t client_full;
+	pthread_cond_t client_empty;
 } Bundle;
 
 extern Bundle* bundle;

@@ -16,6 +16,9 @@ Bundle* create_bundle(SocketQueue* sockets, LogQueue* logs, char** dictionary){
 	pthread_mutex_init(&(bundle->client_lock), NULL);
 	pthread_mutex_init(&(bundle->log_lock), NULL);
 
+	pthread_cond_init(&(bundle->client_full), NULL);
+	pthread_cond_init(&(bundle->client_empty), NULL);
+
 	return bundle;
 }
 
@@ -24,6 +27,8 @@ void free_bundle(Bundle* bundle){
 
 	pthread_mutex_destroy(&(bundle->client_lock));
 	pthread_mutex_destroy(&(bundle->log_lock));
+	pthread_cond_destroy(&(bundle->client_full));
+	pthread_cond_destroy(&(bundle->client_empty));
 	free(bundle);
 }
 
@@ -74,7 +79,7 @@ int dequeue_socket(SocketQueue* queue){
 
 void print_queue_socket(SocketQueue* queue){
 
-	for(int i = queue->front; i < queue->end + 1; i++){
+	for(int i = 0; i < queue->max_size; i++){
 	
 		printf("%d\n", (queue->array[i]));
 	}
