@@ -9,8 +9,9 @@ typedef struct{
 	int front;
 	int end;
 	int current_size;
-	pthread_cond_t socket_full;
 	int* array;
+
+
 } SocketQueue;
 
 SocketQueue* create_queue_socket(int);
@@ -27,8 +28,9 @@ typedef struct{
 	int front;
 	int end;
 	int current_size;
-	pthread_mutex_t log_lock;
 	char** array;
+
+
 } LogQueue;
 
 LogQueue* create_queue_log(int);
@@ -44,11 +46,13 @@ typedef struct{
 	SocketQueue* client_buffer;
 	LogQueue* log_buffer;
 	char** dictionary;
-
+	pthread_mutex_t client_lock;
+	pthread_mutex_t log_lock;
 } Bundle;
 
 extern Bundle* bundle;
 Bundle* create_bundle(SocketQueue*, LogQueue*, char**);
+void free_bundle(Bundle*);
 
 #endif
 

@@ -13,9 +13,19 @@ Bundle* create_bundle(SocketQueue* sockets, LogQueue* logs, char** dictionary){
 	bundle->log_buffer = logs;
 	bundle->dictionary = dictionary;
 
+	pthread_mutex_init(&(bundle->client_lock), NULL);
+	pthread_mutex_init(&(bundle->log_lock), NULL);
+
 	return bundle;
 }
 
+
+void free_bundle(Bundle* bundle){
+
+	pthread_mutex_destroy(&(bundle->client_lock));
+	pthread_mutex_destroy(&(bundle->log_lock));
+	free(bundle);
+}
 
 // SocketQueue Functions.
 
@@ -27,8 +37,8 @@ SocketQueue* create_queue_socket(int size){
 	queue->front = 0;
 	queue->current_size = 0;
 	queue->end = size - 1;
-	pthread_cond_init(&(queue->socket_full), NULL);
 	queue->array = (int*) malloc(size * sizeof(int));
+
 	return queue;
 }
 
@@ -87,6 +97,7 @@ LogQueue* create_queue_log(int size){
         queue->current_size = 0;
         queue->end = size - 1;
         queue->array = (char**) malloc(size * sizeof(char*));
+
         return queue;
 }
 
@@ -122,7 +133,6 @@ char* dequeue_log(LogQueue* queue){
 void print_queue_log(LogQueue* queue){
 
         for(int i = queue->front; i < queue->end + 1; i++){
-
                 printf("%s\n", (queue->array[i]));
         }
 }
