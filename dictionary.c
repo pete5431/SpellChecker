@@ -26,8 +26,6 @@ char** make_dictionary(char* dictionary_filename){
 
         int i = 0;
 
-        printf("Dict: %d\n", dictionary_size);
-
         while(getline(&read_word, &size, fp) != -1){
 
                 dictionary[i] = (char*) malloc((strlen(read_word) + 1) * sizeof(char));
@@ -36,8 +34,6 @@ char** make_dictionary(char* dictionary_filename){
 
                 i++;
         }
-
-        printf("i : %d\n", i);
 
         dictionary[i] = NULL;
 
