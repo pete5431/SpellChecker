@@ -72,6 +72,8 @@ int main(int argc, char** argv){
 
 		port_number = DEFAULT_PORT;
 	}
+	
+	printf("Port: %s\n", port_number);
 
 	pthread_t workers[NUM_WORKERS];
 
@@ -83,10 +85,6 @@ int main(int argc, char** argv){
 
 	for(int i = 0; i < NUM_WORKERS; i++){
 		pthread_create(&(workers[i]), NULL, &process_sockets, NULL);
-	}
-
-	for(int i = 0; i < NUM_WORKERS; i++){
-		pthread_join(workers[i], NULL);
 	}
 
 	start_server(port_number);
@@ -141,20 +139,22 @@ void start_server(char* port_number){
 			printf("Connection accepted from %s:%s\n", client_name, client_port);
 		}
 
+		// Lock the client buffer.
 		pthread_mutex_lock(&(bundle->client_lock));
 
+		// If the client buffer is full, wait until it isn't. For now unlock.
 		if(is_full_socket(bundle->client_buffer)){
 			pthread_cond_wait(&(bundle->client_full), &(bundle->client_lock));
-			enqueue_socket(bundle->client_buffer, connected_fd);
-			pthread_cond_signal(&(bundle->client_empty));
-		}else
+		}
+
 		// Add the connected socket to the queue.
 		enqueue_socket(bundle->client_buffer, connected_fd);		
 
+		// Unlock the client buffer. Finished adding.
 		pthread_mutex_unlock(&(bundle->client_lock));
 
-		printf("connection closed.\n");
-		close(connected_fd);
+		// Signal the client buffer is not empty, and therefore lock whoever was waiting.
+		pthread_cond_signal(&(bundle->client_empty));
 	}	
 }
 
