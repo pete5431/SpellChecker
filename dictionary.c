@@ -52,4 +52,23 @@ void free_dictionary(char*** dictionary){
         }
         free(*dictionary);
 }
+
+int find_word(char** dictionary, char* word){
+
+	if(dictionary == NULL){
+		printf("Empty dictionary.\n");
+		return 0;
+	}
+
+	int i = 0;
+
+	while(dictionary[i] != NULL){
+
+		if(strcmp(word, dictionary[i]) == 0){
+			return 1;
+		}
+		i++;
+	}
+	return 0;
+}
                                        
