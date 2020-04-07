@@ -50,6 +50,8 @@ typedef struct{
 	pthread_mutex_t log_lock;
 	pthread_cond_t client_full;
 	pthread_cond_t client_empty;
+	pthread_cond_t log_full;
+	pthread_cond_t log_empty;
 } Bundle;
 
 extern Bundle* bundle;
