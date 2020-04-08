@@ -3,6 +3,8 @@
 
 #include <pthread.h>
 
+//Contains a Bundle struct that holds a SocketQueue and LogQueue as well as other data structures and variables.
+
 typedef struct{
 
 	int max_size;

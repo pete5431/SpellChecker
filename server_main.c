@@ -36,12 +36,11 @@ int main(int argc, char** argv){
 	char** dictionary = NULL;
 	char* port_number = NULL;
 
-	// If too many arguments.
+	// If too many arguments, exit.
 	if(argc > 3){
 		printf("Too many arguments to server.\n");
 		exit(1);
 	}
-	// If 3 arguments.
 	else if(argc == 3){
 
 		// If both dictionary file and port number is provided.
@@ -63,6 +62,11 @@ int main(int argc, char** argv){
 
 		dictionary_filename = (char*) calloc(strlen(argv[1]) + 1, sizeof(char));
 
+		if(dictionary_filename == NULL){
+			printf("Memory Allocation Error.\n");
+			exit(1);
+		}
+
                 strncpy(dictionary_filename, argv[1], strlen(argv[1]) + 1);
 
 		port_number = DEFAULT_PORT;
@@ -72,6 +76,11 @@ int main(int argc, char** argv){
 		// If none are provided, use default.
 
 		dictionary_filename = (char*) calloc(strlen(DEFAULT_DICTIONARY) + 1, sizeof(char));
+
+		if(dictionary_filename == NULL){
+			printf("Memory Allocation Error.\n");
+			exit(1);
+		}
 
 		strncpy(dictionary_filename, DEFAULT_DICTIONARY, strlen(DEFAULT_DICTIONARY) + 1 * sizeof(char));
 
