@@ -1,0 +1,87 @@
+CIS 3207 Assignment 3 SpellCheck Server
+
+Introduction:
+
+The program runs a spell check server that accepts words as input from connected clients and checks if the word is spelled correctly
+
+based off the current loaded dictionary. Multiple clients can connect at once, but will have to wait if the server is busy. The server
+
+can be ran with a custom dictionary or port number, otherwise the defaults are used. 
+
+______________________________________________________________________________________________________________________________________
+
+Program Description:
+
+At the very start of the program's code it checks if a custom dictionary or port number is provided, otherwise it will use the default
+
+dictionary file and port number 55522. It will then create necessary data structures, one for the client buffer, one for the log buffer
+
+and one for the dictionary. All of these will be bundled in a global Bundle struct. 
+
+After that it creates a pool of worker threads for the client buffer using pthread_create. Then it creates one worker thread for the
+
+log buffer. No pthread_joins are used because each thread will be looping forever unless it exits through an error or the server is 
+
+exited using ^C. Then one fuction start_server, starts the server. A listening socket will be fetched and will be used to listen for
+
+incoming connections. In the start_server function, a while loop acts as the listening thread to continue listening for connections.
+
+In the global bundle are two mutex variables, one for the log buffer, and one for client buffer.
+
+There will also be four conditional variables. Two for each buffer, and signal empty and full.
+
+The listening thread will lock when adding to the client buffer, but if the client buffer is full, it waits until someone signals
+
+the client buffer is not full, after it adds to buffer, it unlocks, and then signals any waiting for client buffer to be not empty that
+
+the client buffer is not longer empty. 
+
+Each worker thread listens and waits for a client in the client buffer. If the client buffer is empty it waits. Only one worker thread
+
+can access the client buffer at a time and the code for taking from client buffer is protected by a mutex lock. Each worker thread will
+
+be in a while loop that runs forever unless an error occurs and the thread exits or the server closes. Once a worker thread receives a
+
+client, it unlocks the mutex and signal to anyone waiting that the buffer is no longer full (if it was). 
+
+While servicing the client, it will continously read words from the client until the client closes the connection.
+
+It does this by reading from the socket. After reading to a buffer, it checks the word if it exists in the dictionary. 
+
+If the words exists, then ": OK" is appended to the end, or ": MISSPELLED" otherwise. Then it writes it back to the socket.
+
+The word and its status will be added to a log buffer. Like the client buffer, only one worker thread may access it at once.
+
+When a worker thread enters the code to add to log buffer, it acquires the lock. If the log buffer is full, it waits until signaled
+
+that the log buffer is no longer full. After adding, it unlocks the lock and signals that the log buffer is not empty.
+
+Meanwhile the log thread wakes up upon a log event being added to the log buffer. It acquires the lock for the log buffer, and then
+
+dequeues the log buffer. It writes the log event to a log file, and then unlocks, signals the log buffer is not longer empty, and 
+
+closes the file. 
+
+All threads will continue to run unless an error happens or the server exits.
+
+______________________________________________________________________________________________________________________________________
+
+Testing the Program:
+
+I tested using the linux telnet client and using the loopback address 127.0.0.1 along with the port number. 
+
+I started with a few worker threads (2 threads), and a low capacity for each queue (5).
+
+I opened two terminals that logged onto the same cis-client, and using telnet to connect to the server.
+
+At first I just printed the word read from socket to make sure I wasn't getting just random garbage.
+
+I then opened a third terminal and connected. Upon entering a word, it paused until another client left.
+
+When I knew the multithreading worked and I was able to read the word from socket I added the log thread and started checking
+
+for spelling. I did multiple trials, and all the words I entered had the right status. 
+
+One challenge was being unaware that telnet adds a /r/n to inputs in sockets, and I had to make sure to ignore the /r while
+
+parsing the input from socket. 
