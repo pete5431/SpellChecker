@@ -15,17 +15,20 @@
 
 #define DEFAULT_PORT "55522"
 #define BACKLOG 10
-#define CAPACITY 5
-#define NUM_WORKERS 2
-
+#define CAPACITY 10
+#define NUM_WORKERS 5
 #define MAX_LINE 64
 
+// The default dictionary file.
 const char* DEFAULT_DICTIONARY = "dictionary.txt";
 
-Bundle* bundle;
-
+// Function to start the server.
 void start_server(char*);
+// Function to get the listening socket.
 int get_listen_fd(char*);
+
+// The global bundle.
+Bundle* bundle;
 
 int main(int argc, char** argv){
 
@@ -33,10 +36,12 @@ int main(int argc, char** argv){
 	char** dictionary = NULL;
 	char* port_number = NULL;
 
+	// If too many arguments.
 	if(argc > 3){
 		printf("Too many arguments to server.\n");
 		exit(1);
 	}
+	// If 3 arguments.
 	else if(argc == 3){
 
 		// If both dictionary file and port number is provided.
@@ -73,22 +78,31 @@ int main(int argc, char** argv){
 		port_number = DEFAULT_PORT;
 	}
 	
-	printf("Port: %s\n", port_number);
+	// Array of threads that will be worker threads that work on the client buffer.
+	pthread_t client_workers[NUM_WORKERS];
+	// Single thread to work on the log buffer.
+	pthread_t log_worker;
 
-	pthread_t workers[NUM_WORKERS];
-
+	// Create a new socket queue with the following CAPACITY.
 	SocketQueue* sockets = create_queue_socket(CAPACITY);
+	// Create a new log queue with the following CAPACITY.
 	LogQueue* logs = create_queue_log(CAPACITY);
+	// Make the dictionary with the file.
 	dictionary = make_dictionary(dictionary_filename);
 
+	// Create the global bundle with the data structures.
 	bundle = create_bundle(sockets, logs, dictionary);
-
+		
+	// Create the threads.
 	for(int i = 0; i < NUM_WORKERS; i++){
-		pthread_create(&(workers[i]), NULL, &process_sockets, NULL);
+		pthread_create(&(client_workers[i]), NULL, &process_sockets, NULL);
 	}
-
+	pthread_create(&log_worker, NULL, &process_logs, NULL);
+	
+	// Start the server with the port number.
 	start_server(port_number);
 
+	// Free any allocated memory, not that it will get to here though.
 	free(dictionary_filename);
 	free_dictionary(&dictionary);
 	free_queue_socket(sockets);
